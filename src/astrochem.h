@@ -127,6 +127,8 @@ typedef struct
   double *nh;
   double *tgas;
   double *tdust;
+  double *chi;
+  double *cosmic;
 } cell_table_t;
 
 typedef struct

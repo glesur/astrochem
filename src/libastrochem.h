@@ -38,8 +38,6 @@ typedef char species_name_t[MAX_CHAR_SPECIES];
 
 typedef struct
 {
-  double chi;
-  double cosmic;
   double grain_size;
   double grain_abundance;
   double grain_gas_mass_ratio;
@@ -52,6 +50,8 @@ typedef struct
   double nh;
   double tgas;
   double tdust;
+  double chi;
+  double cosmic;
 } cell_t;
 
 typedef struct

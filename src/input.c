@@ -123,8 +123,6 @@ read_input (const char *input_file, inp_t * input_params,
   strcpy (input_params->files.source_file, "");
   strcpy (input_params->files.chem_file, "");
   strcpy (input_params->output.suffix, "");
-  input_params->phys.chi = CHI_DEFAULT;
-  input_params->phys.cosmic = COSMIC_DEFAULT;
   input_params->phys.grain_size = GRAIN_SIZE_DEFAULT;
   input_params->phys.grain_abundance = 0;
   input_params->phys.grain_mass_density = GRAIN_MASS_DENSITY_DEFAULT;
@@ -169,11 +167,7 @@ read_input (const char *input_file, inp_t * input_params,
 
           else if (strcmp (keyword, "phys") == 0)
             {
-              if (strcmp (parameter, "chi") == 0)
-                input_params->phys.chi = atof (value);
-              else if (strcmp (parameter, "cosmic") == 0)
-                input_params->phys.cosmic = atof (value);
-              else if (strcmp (parameter, "grain_size") == 0)
+              if (strcmp (parameter, "grain_size") == 0)
                 input_params->phys.grain_size = atof (value) * 1e-4;    /* microns -> cm */
               else if (strcmp (parameter, "grain_gas_mass_ratio") == 0)
                 input_params->phys.grain_gas_mass_ratio = atof (value);
@@ -476,7 +470,7 @@ read_source (const char *source_file, mdl_t * source_mdl,
   int n_cell = 0;
   int allocated = 0;
   SOURCE_READ_MODE mode = R_STATIC;     //0 static, 1 dynamic, 2 time_step reading
-  double av, nh, tgas, tdust;
+  double av, nh, tgas, tdust, chi, cosmic;
 
 
 
@@ -597,8 +591,8 @@ read_source (const char *source_file, mdl_t * source_mdl,
         {
           int tmp_cell, tmp_ts;
           //Format and value not checked
-          sscanf (line, "%d %d %lf %lf %lf %lf", &tmp_cell, &tmp_ts, &av, &nh,
-                  &tgas, &tdust);
+          sscanf (line, "%d %d %lf %lf %lf %lf %lf %lf", &tmp_cell, &tmp_ts, &av, &nh,
+                  &tgas, &tdust, &chi, &cosmic);
           if (tmp_ts < source_mdl->ts.n_time_steps
               || tmp_cell < source_mdl->n_cells)
             {
@@ -606,6 +600,8 @@ read_source (const char *source_file, mdl_t * source_mdl,
               source_mdl->cell[tmp_cell].nh[tmp_ts] = nh;
               source_mdl->cell[tmp_cell].tgas[tmp_ts] = tgas;
               source_mdl->cell[tmp_cell].tdust[tmp_ts] = tdust;
+              source_mdl->cell[tmp_cell].chi[tmp_ts] = chi;
+              source_mdl->cell[tmp_cell].cosmic[tmp_ts] = cosmic;
             }
           else
             {
@@ -622,8 +618,8 @@ read_source (const char *source_file, mdl_t * source_mdl,
           if (n_cell < source_mdl->n_cells)
             {
               int tmp;
-              if (sscanf (line, "%d %lf %lf %lf %lf",
-                          &tmp, &av, &nh, &tgas, &tdust) != 5)
+              if (sscanf (line, "%d %lf %lf %lf %lf %lf %lf",
+                          &tmp, &av, &nh, &tgas, &tdust, &chi, &cosmic) != 7)
                 {
                   fprintf (stderr,
                            "astrochem: %s: %d: error: incorrect format in source file %s .\n",
@@ -634,6 +630,8 @@ read_source (const char *source_file, mdl_t * source_mdl,
               source_mdl->cell[n_cell].nh[0] = nh;
               source_mdl->cell[n_cell].tgas[0] = tgas;
               source_mdl->cell[n_cell].tdust[0] = tdust;
+              source_mdl->cell[n_cell].chi[0] = tdust;
+              source_mdl->cell[n_cell].cosmic[0] = cosmic;
               n_cell++;
             }
           else
@@ -705,7 +703,7 @@ alloc_mdl (mdl_t * source_mdl, int n_cells, int n_time_steps)
     }
   /* We want the cells in source strcutres have the following layout in memory :
 
-     [ cells[i] -> [  [ nh[0] , nh[1], .. , nh[n_time_steps-1] ] , [av[0], av[1], ..,] , [ tgas[0],.. ], [ tdust[0] ] ] , cells[i+1] -> ... ]
+     [ cells[i] -> [  [ nh[0] , nh[1], .. , nh[n_time_steps-1] ] , [av[0], av[1], ..,] , [ tgas[0],.. ], [ tdust[0] ] , [chi[0],...], [cosmic[0],....] , cells[i+1] -> ... ]
      although cells[i] et cells[i+1] could be pointing at two very different place, we want it to be memory contiguous
 
 
@@ -716,7 +714,7 @@ alloc_mdl (mdl_t * source_mdl, int n_cells, int n_time_steps)
      Finally point each pointer to the right block of data.
    */
   double *data;
-  if ((data = malloc (4 * n_cells * n_time_steps * sizeof (double))) == NULL)
+  if ((data = malloc (6 * n_cells * n_time_steps * sizeof (double))) == NULL)
     {
       fprintf (stderr, "astrochem: %s:%d: array allocation failed.\n",
                __FILE__, __LINE__);
@@ -731,10 +729,12 @@ alloc_mdl (mdl_t * source_mdl, int n_cells, int n_time_steps)
   int i;
   for (i = 0; i < n_cells; i++)
     {
-      source_mdl->cell[i].nh = &(data[4 * i * n_time_steps]);
-      source_mdl->cell[i].av = &(data[(4 * i + 1) * n_time_steps]);
-      source_mdl->cell[i].tgas = &(data[(4 * i + 2) * n_time_steps]);
-      source_mdl->cell[i].tdust = &(data[(4 * i + 3) * n_time_steps]);
+      source_mdl->cell[i].nh = &(data[6 * i * n_time_steps]);
+      source_mdl->cell[i].av = &(data[(6 * i + 1) * n_time_steps]);
+      source_mdl->cell[i].tgas = &(data[(6 * i + 2) * n_time_steps]);
+      source_mdl->cell[i].tdust = &(data[(6 * i + 3) * n_time_steps]);
+      source_mdl->cell[i].chi = &(data[(6 * i + 4) * n_time_steps]);
+      source_mdl->cell[i].cosmic = &(data[(6 * i + 5) * n_time_steps]);
     }
   return EXIT_SUCCESS;
 }

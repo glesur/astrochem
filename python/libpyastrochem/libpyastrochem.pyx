@@ -18,8 +18,6 @@ cdef extern from "../../src/libastrochem.h":
         double tdust
 
     ctypedef struct phys_t:
-        double chi
-        double cosmic
         double grain_size
         double grain_abundance
 
@@ -37,6 +35,8 @@ cdef extern from "../../src/libastrochem.h":
         double nh
         double tgas
         double tdust
+        double chi
+        double cosmic
 
     ctypedef struct astrochem_mem_t:
         params_t params
@@ -79,28 +79,9 @@ cdef class Phys:
     cdef public phys_t thisstruct
 
     def __cinit__( self ):
-        self.thisstruct.chi = CHI_DEFAULT
-        self.thisstruct.cosmic = COSMIC_DEFAULT
         self.thisstruct.grain_size = GRAIN_SIZE_DEFAULT
         self.thisstruct.grain_abundance = 0
 
-    property chi:
-        """
-        Chi physical property
-        """
-        def __get__(self):
-            return self.thisstruct.chi
-        def __set__(self, double chi):
-            self.thisstruct.chi = chi
-
-    property cosmic:
-        """
-        Cosmic physical property
-        """
-        def __get__(self):
-            return self.thisstruct.cosmic
-        def __set__(self, double cosmic):
-            self.thisstruct.cosmic = cosmic
 
     property grain_size:
         """
@@ -132,14 +113,18 @@ cdef class Cell:
     nh    -- nh to use
     tgas  -- tgas to use
     tdust -- tdust to use
+    chi   -- UV attenuation factor
+    cosmic-- cosmic ray ionisation rate
     """
     cdef public cell_t thisstruct
 
-    def __cinit__( self, double av, double nh, double tgas, double tdust ):
+    def __cinit__( self, double av, double nh, double tgas, double tdust, double chi, double cosmic ):
         self.thisstruct.av = av
         self.thisstruct.nh = nh
         self.thisstruct.tdust = tgas
         self.thisstruct.tgas = tdust
+        self.thisstruct.chi = chi
+        self.thisstruct.cosmic = cosmic
 
     property av:
         """
@@ -176,6 +161,24 @@ cdef class Cell:
             return self.thisstruct.tdust
         def __set__(self, double tdust):
             self.thisstruct.tdust = tdust
+                        
+    property chi:
+        """
+        chi cell property
+        """
+        def __get__(self):
+            return self.thisstruct.chi
+        def __set__(self, double chi):
+            self.thisstruct.chi = chi
+            
+    property cosmic:
+        """
+        cosmic cell property
+        """
+        def __get__(self):
+            return self.thisstruct.cosmic
+        def __set__(self, double cosmic):
+            self.thisstruct.cosmic = cosmic
 
 cdef class Solver:
     """

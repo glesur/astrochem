@@ -302,8 +302,8 @@ int solver_init( const cell_t* cell, const net_t* network, const phys_t* phys,
                                                   network->reactions[i].reaction_type,
                                                   network->reactions[i].reaction_no,
                                                   cell->nh, cell->av, cell->tgas,
-                                                  cell->tdust, phys->chi,
-                                                  phys->cosmic,
+                                                  cell->tdust, cell->chi,
+                                                  cell->cosmic,
                                                   phys->grain_size,
                                                   phys->grain_abundance, 0.);
     }
@@ -318,8 +318,8 @@ int solver_init( const cell_t* cell, const net_t* network, const phys_t* phys,
   astrochem_mem->params.av = cell->av;
   astrochem_mem->params.tgas = cell->tgas;
   astrochem_mem->params.tdust = cell->tdust;
-  astrochem_mem->params.chi = phys->chi;
-  astrochem_mem->params.cosmic = phys->cosmic;
+  astrochem_mem->params.chi = cell->chi;
+  astrochem_mem->params.cosmic = cell->cosmic;
   astrochem_mem->params.grain_size = phys->grain_size;
   astrochem_mem->params.grain_abundance = phys->grain_abundance;
 
@@ -380,8 +380,8 @@ int solve( astrochem_mem_t* astrochem_mem, const net_t* network, double* abundan
                                                       network->reactions[i].reaction_type,
                                                       network->reactions[i].reaction_no,
                                                       new_cell->nh, new_cell->av, new_cell->tgas,
-                                                      new_cell->tdust, astrochem_mem->params.chi,
-                                                      astrochem_mem->params.cosmic,
+                                                      new_cell->tdust, new_cell->chi,
+                                                      new_cell->cosmic,
                                                       astrochem_mem->params.grain_size,
                                                       astrochem_mem->params.grain_abundance, 0.);
         }
