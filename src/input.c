@@ -94,7 +94,8 @@ read_input (const char *input_file, inp_t * input_params,
               localStr++;
 
               //Checking for all species
-              if( strncmp( localStr,"ALL", 3 ) == 0 )
+              if ((strncmp( localStr,"ALL", 3 ) == 0 ) ||
+		  (strncmp( localStr,"all", 3 ) == 0))
                 {
                   all_species = true;
                   n_output_species = network->n_species;
@@ -384,8 +385,8 @@ read_input (const char *input_file, inp_t * input_params,
   if( input_params->phys.grain_abundance != 0 )
     {
       fprintf (stderr,
-               "astrochem: warning: use of a input grain abundance is deprecated, yet still supported."
-               "Please use grain_gas_mass_ratio and grain_mass_density parameters.\n");
+               "astrochem: warning: use of a input grain abundance is deprecated, yet still supported. "
+               "Please use the grain_gas_mass_ratio and grain_mass_density parameters instead.\n");
     }
   else
     {
