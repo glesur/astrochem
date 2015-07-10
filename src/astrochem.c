@@ -362,7 +362,9 @@ full_solve (hid_t fid, hid_t dataset, hid_t* routeDatasets, hid_t dataspace, hid
                __FILE__, __LINE__);
       return EXIT_FAILURE;
     }
-
+#ifdef HAVE_OPENMP
+              omp_set_lock(&lock);
+#endif
   // Create the memory dataspace, selecting all output abundances
   hsize_t size = input_params->output.n_output_species;
   hid_t memDataspace = H5Screate_simple(1, &size, NULL);
@@ -381,7 +383,9 @@ full_solve (hid_t fid, hid_t dataset, hid_t* routeDatasets, hid_t dataspace, hid
       // Create the route file dataspace, and prepare selection of a chunk of the file
       routeFileDataspace = H5Scopy(routeDataspace);
     }
-
+#ifdef HAVE_OPENMP
+              omp_unset_lock(&lock);
+#endif
   // Initializing abundance
 #if 0 //Ultra complicated code
   const species_name_t* species = malloc( input_params->abundances.n_initial_abundances * sizeof(*species));
@@ -487,18 +491,15 @@ full_solve (hid_t fid, hid_t dataset, hid_t* routeDatasets, hid_t dataspace, hid
 
 #ifdef HAVE_OPENMP
               omp_set_lock(&lock);
-              printf("Thread %d locked\n",omp_get_thread_num());
 #endif
               // Select a chunk of the file
               hsize_t     start[3]={  cell_index, i, 0 };
               H5Sselect_hyperslab( fileDataspace, H5S_SELECT_SET, start, NULL, count , NULL );
-			  printf("Thread %d writing to (%d,%d)\n",omp_get_thread_num(),cell_index,i);
               // Write the chunk
               H5Dwrite(dataset, datatype, memDataspace, fileDataspace, H5P_DEFAULT,
                        output_abundances );
 
 #ifdef HAVE_OPENMP
-			printf("Thread %d unlocked\n",omp_get_thread_num());
               omp_unset_lock(&lock);
 #endif
 
