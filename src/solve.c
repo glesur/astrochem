@@ -348,7 +348,7 @@ int solver_init( const cell_t* cell, const net_t* network, const phys_t* phys,
 #endif
       || ((CVDlsSetDenseJacFn (  astrochem_mem->cvode_mem, jacobian) != CV_SUCCESS))
       || (CVodeSetUserData ( astrochem_mem->cvode_mem, &astrochem_mem->params) != CV_SUCCESS)
-      || (CVodeSetMaxNumSteps (astrochem_mem->cvode_mem, 1000000) != CV_SUCCESS))
+      || (CVodeSetMaxNumSteps (astrochem_mem->cvode_mem, CVODE_MXSTEPS) != CV_SUCCESS))
     {
       fprintf (stderr, "astrochem: %s:%d: solver initialization failed.\n",
                __FILE__, __LINE__);
