@@ -73,6 +73,7 @@ f (realtype t __attribute__ ((unused)), N_Vector y, N_Vector ydot,
   /* Loop over the reactions and build the right hand ODE system
      equations. */
 
+	//printf("cosmic=%e chi=%e\n",cosmic,chi);
   for (i = 0; i < n_species; i++)
     {
       NV_Ith_S (ydot, i) = 0;
@@ -346,7 +347,8 @@ int solver_init( const cell_t* cell, const net_t* network, const phys_t* phys,
       || ((CVDense ( astrochem_mem->cvode_mem, network->n_species) != CV_SUCCESS))
 #endif
       || ((CVDlsSetDenseJacFn (  astrochem_mem->cvode_mem, jacobian) != CV_SUCCESS))
-      || (CVodeSetUserData ( astrochem_mem->cvode_mem, &astrochem_mem->params) != CV_SUCCESS))
+      || (CVodeSetUserData ( astrochem_mem->cvode_mem, &astrochem_mem->params) != CV_SUCCESS)
+      || (CVodeSetMaxNumSteps (astrochem_mem->cvode_mem, 1000000) != CV_SUCCESS))
     {
       fprintf (stderr, "astrochem: %s:%d: solver initialization failed.\n",
                __FILE__, __LINE__);
@@ -393,6 +395,8 @@ int solve( astrochem_mem_t* astrochem_mem, const net_t* network, double* abundan
       astrochem_mem->params.av = new_cell->av;
       astrochem_mem->params.tgas = new_cell->tgas;
       astrochem_mem->params.tdust = new_cell->tdust;
+      astrochem_mem->params.chi = new_cell->chi;
+      astrochem_mem->params.cosmic = new_cell->cosmic;
     }
 
   realtype t = 0.0;

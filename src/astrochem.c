@@ -427,6 +427,8 @@ full_solve (hid_t fid, hid_t dataset, hid_t* routeDatasets, hid_t dataspace, hid
   cell_unik.nh = cell->nh[0];
   cell_unik.tgas = cell->tgas[0];
   cell_unik.tdust = cell->tdust[0];
+  cell_unik.chi = cell->chi[0];
+  cell_unik.cosmic = cell->cosmic[0];
   if( solver_init( &cell_unik, network, &input_params->phys, abundances, min_nh, input_params->solver.abs_err,  input_params->solver.rel_err, &astrochem_mem ) != EXIT_SUCCESS )
     {
       return EXIT_FAILURE;
@@ -446,6 +448,8 @@ full_solve (hid_t fid, hid_t dataset, hid_t* routeDatasets, hid_t dataspace, hid
               cell_unik.nh = cell->nh[i];
               cell_unik.tgas = cell->tgas[i];
               cell_unik.tdust = cell->tdust[i];
+              cell_unik.chi = cell->chi[i];
+              cell_unik.cosmic = cell->cosmic[i];
 
               if( solve( &astrochem_mem, network, abundances,  ts->time_steps[i], &cell_unik, verbose ) != EXIT_SUCCESS )
                 {
@@ -483,16 +487,18 @@ full_solve (hid_t fid, hid_t dataset, hid_t* routeDatasets, hid_t dataspace, hid
 
 #ifdef HAVE_OPENMP
               omp_set_lock(&lock);
+              printf("Thread %d locked\n",omp_get_thread_num());
 #endif
               // Select a chunk of the file
               hsize_t     start[3]={  cell_index, i, 0 };
               H5Sselect_hyperslab( fileDataspace, H5S_SELECT_SET, start, NULL, count , NULL );
-
+			  printf("Thread %d writing to (%d,%d)\n",omp_get_thread_num(),cell_index,i);
               // Write the chunk
               H5Dwrite(dataset, datatype, memDataspace, fileDataspace, H5P_DEFAULT,
                        output_abundances );
 
 #ifdef HAVE_OPENMP
+			printf("Thread %d unlocked\n",omp_get_thread_num());
               omp_unset_lock(&lock);
 #endif
 

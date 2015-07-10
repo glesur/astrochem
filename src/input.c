@@ -631,7 +631,7 @@ read_source (const char *source_file, mdl_t * source_mdl,
               source_mdl->cell[n_cell].nh[0] = nh;
               source_mdl->cell[n_cell].tgas[0] = tgas;
               source_mdl->cell[n_cell].tdust[0] = tdust;
-              source_mdl->cell[n_cell].chi[0] = tdust;
+              source_mdl->cell[n_cell].chi[0] = chi;
               source_mdl->cell[n_cell].cosmic[0] = cosmic;
               n_cell++;
             }
